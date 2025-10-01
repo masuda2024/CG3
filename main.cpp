@@ -376,18 +376,7 @@ std::string ConverString(const std::wstring& str)
 
 
 
-
-
 ////////////////////////////////////////////
-
-
-
-
-
-
-
-
-
 
 
 
@@ -1226,7 +1215,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 #pragma endregion
 
 
-	/////////////////////////////////ブレンド//////////////////////////
+	
+#pragma region ブレンド
 	//BlendStateの設定
 	D3D12_BLEND_DESC blendDesc{};
 	
@@ -1271,6 +1261,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	blendDesc.RenderTarget[0].DestBlend = D3D12_BLEND_SRC_COLOR;
     */
 
+
 	//スクリーン合成
 	/*
 	blendDesc.RenderTarget[0].SrcBlend = D3D12_BLEND_INV_DEST_COLOR;
@@ -1278,7 +1269,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	blendDesc.RenderTarget[0].DestBlend = D3D12_BLEND_ONE;
 	*/
 
-
+#pragma endregion
 
 
 
@@ -1337,6 +1328,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	depthStencilDesc.DepthEnable = true;
 	//書き込み
 	depthStencilDesc.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
+	
+	
+	
+	
+	
 	//比較関数はLessEqual(近ければ描画)
 	depthStencilDesc.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
 	
@@ -1432,10 +1428,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	//               []
 	//                []
 	
-	//    [][][][][][][]
-	//    [][][][][][][]
-	//	  [][][][][][][]
-	//	  [][][][][][][]
+	//    [][][][][]
+	//    [][][][][]
+	//	  [][][][][]
+	//	  [][][][][]
 
 	//    [][][]
 	//    [][][]
@@ -1451,10 +1447,21 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	//      [][][][][]
 
 
+	//    []  []  []  []  []
+	//    [][][][][][][][][]
+	//	  []  []  []  []  []
+	//	  []  []  []  []  []
+
+
+
 #pragma region モデル
 	//モデル読み込み
-	ModelData modelData = LoadObjFile("resources", "plane.obj");
+	//ModelData modelData = LoadObjFile("resources", "plane.obj");
 	//ModelData modelData = LoadObjFile("resources", "axis.obj");
+	ModelData modelData = LoadObjFile("resources", "fence.obj");
+
+
+
 
 	//頂点リソースを作る
 	ID3D12Resource* vertexResource = CreateBufferResource(device, sizeof(VertexData) * modelData.vertices.size());
@@ -1600,6 +1607,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 
 
+
+
+#pragma region スプライト
+
 	//Sprite用の頂点リソースを作る
 	ID3D12Resource* vertexResourceSprite = CreateBufferResource(device, sizeof(VertexData) * 6);
 	//頂点バッファビューを作成する
@@ -1648,7 +1659,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		{0.0f,0.0f,0.0f},
 	};
 
-
+#pragma endregion
 
 	/////////////
 
@@ -1723,9 +1734,21 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		ImGui_ImplWin32_NewFrame();
 		ImGui::NewFrame();
 
+
+		ImGui::Begin("Camera");
+		ImGui::DragFloat("translate.X", &cameraTransform.translate.x, 0.1f);
+		ImGui::DragFloat("translate.Y", &cameraTransform.translate.y, 0.1f);
+		ImGui::DragFloat("translate.Z", &cameraTransform.translate.z, 0.1f);
+
+		ImGui::DragFloat("rotate.X", &cameraTransform.rotate.x, 0.01f);
+		ImGui::DragFloat("rotate.Y", &cameraTransform.rotate.y, 0.01f);
+		ImGui::DragFloat("rotate.Z", &cameraTransform.rotate.z, 0.01f);
+		ImGui::End();
+
+
 		ImGui::Begin("Settings");
 		ImGui::ColorEdit4("material", &materialData->x, ImGuiColorEditFlags_AlphaPreview);
-		ImGui::DragFloat("rotate.Y", &transform.rotate.y, 9.5f);
+		ImGui::DragFloat("rotate.Y", &transform.rotate.y, 0.1f);
 		ImGui::End();
 
 		ImGui::Begin("BlendMode");
@@ -1756,6 +1779,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
 		//遷移後のResourceState
 		barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
+
+
+#pragma region コマンドリスト
+
 
 		//TransitionBarrierを張る
 		commandList->ResourceBarrier(1, &barrier);		//TransitionBarrierを張る
@@ -1832,7 +1859,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		/////////
 
 
-
+#pragma endregion
 
 
 
@@ -1842,7 +1869,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		//[][][][][][][]
 		//[][][][][][][]
 		//[][][][][][][]
-		/**/
+		/*
 		commandList->IASetVertexBuffers(0, 1, &vertexBufferViewSprite);
 		//TransformationMatrixBufferの場所を指定
 		commandList->SetGraphicsRootConstantBufferView(1, transformationMatrixResourceSprite->GetGPUVirtualAddress());
@@ -1852,7 +1879,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		//commandList->DrawInstanced(6, 1, 0, 0);
 
 		commandList->DrawIndexedInstanced(6, 1, 0, 0, 0);
-        
+        */
 
 
 
@@ -1923,7 +1950,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	ImGui_ImplWin32_Shutdown();
 	ImGui::DestroyContext();
 
-
+#pragma region リリース
 
 	indexResourceSprite->Release();
 	transformationMatrixResourceSprite->Release();
@@ -1982,6 +2009,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		debug->ReportLiveObjects(DXGI_DEBUG_D3D12, DXGI_DEBUG_RLO_ALL);
 		debug->Release();
 	}
+#pragma endregion
+
+
 
 	CoUninitialize();
 }
