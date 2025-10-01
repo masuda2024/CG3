@@ -37,6 +37,13 @@ struct Vector2
 	float y;
 };
 
+struct Vector3
+{
+	float x;
+	float y;
+	float z;
+};
+
 struct Vector4
 {
 	float x;
@@ -55,19 +62,9 @@ struct VertexData
 
 
 
-
-
-
 struct Matrix4x4 
 {
 	float m[4][4];
-};
-
-struct Vector3 
-{
-	float x;
-	float y;
-	float z;
 };
 
 struct Transform 
@@ -96,12 +93,29 @@ struct ModelData
 	MaterialData material;
 };
 
-
-
-
+/*
+enum BlendMode
+{
+	//!<ブレンドなし
+	kBlendModeNone,
+	//!<　通常αブレンド デフォルト Src * SrcA + Dest * (1 - SrcA)
+	kBlendModeNormal,
+	//!<　加算 Src * SrcA + Dest * 1
+	kBlendModeAdd,
+	//!< 減算 Dest * 1 - Src * SrcA
+	kBlendModeSubtract,
+	//!< 乗算 Src * θ + Dest * Src
+	kBlendModeMultiply,
+	//!< スクリーン Src * (1 - Dest) + Dest * 1
+	kBlendModeScreen,
+	//利用してはいけない
+	kCount0fBlendMode,
+};
+*/
 
 Transform transform{ {1.0f,1.0f,1.0f},{0.0f,0.0f,0.0f},{0.0f,0.0f,0.0f} };
 
+#pragma region Matrix4x4の計算
 // 単位行列
 Matrix4x4 MakeIdentity4x4()
 {
@@ -315,11 +329,7 @@ Matrix4x4 MakeOethographicMatrix(float left, float top, float right, float botto
 	};
 }
 
-
-
-
-
-
+#pragma endregion
 
 
 
@@ -369,16 +379,6 @@ std::string ConverString(const std::wstring& str)
 
 
 ////////////////////////////////////////////
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -441,15 +441,6 @@ void Log(const std::string& message)
 {
 	OutputDebugStringA(message.c_str());
 }
-
-
-
-
-
-
-
-
-
 
 
 
@@ -841,11 +832,6 @@ ModelData LoadObjFile(const std::string& directoryPath, const std::string& filen
 
 
 
-
-
-
-
-
 //ウインドウプロシージャ
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg,
 	WPARAM wparam, LPARAM lparam)
@@ -928,7 +914,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	HWND hwnd = CreateWindow
 	(
 		wc.lpszClassName,        //利用するクラス名
-		L"CG2",                  //タイトルバーの文字(なんでも良い)
+		L"CG3",                  //タイトルバーの文字(なんでも良い)
 		WS_OVERLAPPEDWINDOW,	 //よく見るウィンドウスタイル
 		CW_USEDEFAULT,			 //表示X座標(Windowsに任せる)
 		CW_USEDEFAULT,			 //表示Y座標(WindowsOSに任せる)
@@ -1239,11 +1225,28 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	inputLayoutDesc.NumElements = _countof(inputElementDescs);
 
 
+
+	/////////////////////////////////ブレンド//////////////////////////
 	//BlendStateの設定
 	D3D12_BLEND_DESC blendDesc{};
+	//通常
+	blendDesc.RenderTarget[0].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
+	blendDesc.RenderTarget[0].BlendEnable = TRUE;
+	blendDesc.RenderTarget[0].SrcBlend = D3D12_BLEND_SRC_ALPHA;
+	blendDesc.RenderTarget[0].BlendOp = D3D12_BLEND_OP_ADD;
+	blendDesc.RenderTarget[0].DestBlend = D3D12_BLEND_INV_SRC_ALPHA;
+	
+	blendDesc.RenderTarget[0].SrcBlendAlpha = D3D12_BLEND_ONE;
+	blendDesc.RenderTarget[0].BlendOpAlpha = D3D12_BLEND_OP_ADD;
+	blendDesc.RenderTarget[0].DestBlendAlpha = D3D12_BLEND_ZERO;
+
+
+
+
+
 	//すべての色要素を書き込む
-	blendDesc.RenderTarget[0].RenderTargetWriteMask =
-	D3D12_COLOR_WRITE_ENABLE_ALL;
+	//blendDesc.RenderTarget[0].RenderTargetWriteMask =
+	//D3D12_COLOR_WRITE_ENABLE_ALL;
 	//RasiterzerStateの設定
 	D3D12_RASTERIZER_DESC rasterizerDesc{};
 	//裏面(時計回り)を表示しない
@@ -1306,6 +1309,17 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	graphicsPipelineStateDesc.DSVFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
 	
 	
+
+
+
+
+
+
+
+
+
+
+
 	
 	
 	//実際に生成
@@ -1319,6 +1333,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 
 	//三角形2個
+	//     []
+	//    [][]
+	//   [][][]
+	//  [][][][]
+	// [][][][][]
+	//
+	
 	/*
 	ID3D12Resource* vertexResource = CreateBufferResource(device, sizeof(VertexData) * 6);
 
@@ -1340,35 +1361,61 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	
 	
 	//左下
-	verteData[0].position = { -0.5f,-0.5f ,0.0f ,1.0f };
-	verteData[0].texcoord = { 0.0f ,1.0f };
+	vertexData[0].position = { -0.5f,-0.5f ,0.0f ,1.0f };
+	vertexData[0].texcoord = { 0.0f ,1.0f };
 	//上
-	verteData[1].position = { 0.0f,0.5f ,0.0f ,1.0f };
-	verteData[1].texcoord = { 0.5f ,0.0f };
+	vertexData[1].position = { 0.0f,0.5f ,0.0f ,1.0f };
+	vertexData[1].texcoord = { 0.5f ,0.0f };
 	//右下
-	verteData[2].position = { 0.5f,-0.5f ,0.0f ,1.0f };
-	verteData[2].texcoord = { 1.0f ,1.0f };
+	vertexData[2].position = { 0.5f,-0.5f ,0.0f ,1.0f };
+	vertexData[2].texcoord = { 1.0f ,1.0f };
 
 
 
 	//左下2
-	verteData[3].position = { -0.5f,-0.5f ,0.5f ,1.0f };
-	verteData[3].texcoord = { 0.0f ,1.0f };
+	vertexData[3].position = { -0.5f,-0.5f ,0.5f ,1.0f };
+	vertexData[3].texcoord = { 0.0f ,1.0f };
 	//上2
-	verteData[4].position = { 0.0f,0.0f ,0.0f ,1.0f };
-	verteData[4].texcoord = { 0.5f ,0.0f };
+	vertexData[4].position = { 0.0f,0.0f ,0.0f ,1.0f };
+	vertexData[4].texcoord = { 0.5f ,0.0f };
 	//右下2
-	verteData[5].position = { 0.5f,-0.5f ,-0.5f ,1.0f };
-	verteData[5].texcoord = { 1.0f ,1.0f };
+	vertexData[5].position = { 0.5f,-0.5f ,-0.5f ,1.0f };
+	vertexData[5].texcoord = { 1.0f ,1.0f };
 
-	
 	*/
+	
 
 
 
+	//軸
+	//              []
+	//              []
+	//    [][][][][][]
+	//               []
+	//                []
+	
+	//    [][][][][][][]
+	//    [][][][][][][]
+	//	  [][][][][][][]
+	//	  [][][][][][][]
+
+	//    [][][][]
+	//    [][][][]
+	//	  [][][][] [][][]
+	//	          [][][]]
+	//	          [][][]
+
+	//          []
+	//         [][]
+	//        [][][]
+	//       [][][][]
+	//      [][][][][]
+
+
+#pragma region モデル
 	//モデル読み込み
-	//ModelData modelData = LoadObjFile("resources", "plane.obj");
-	ModelData modelData = LoadObjFile("resources", "axis.obj");
+	ModelData modelData = LoadObjFile("resources", "plane.obj");
+	//ModelData modelData = LoadObjFile("resources", "axis.obj");
 
 	//頂点リソースを作る
 	ID3D12Resource* vertexResource = CreateBufferResource(device, sizeof(VertexData) * modelData.vertices.size());
@@ -1384,8 +1431,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	std::memcpy(vertexData, modelData.vertices.data(), sizeof(VertexData)* modelData.vertices.size());//頂点データをリソースにコピー
 
 
-
-
+	
 
 
 	//マテリアル用のリソースを作る。今回はcolor1つ分のサイズを用意する
@@ -1396,44 +1442,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	materialResource->Map(0, nullptr, reinterpret_cast<void**>(&materialData));
 	//今回は白を書き込んでみる
 	*materialData = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
-
-
-
-
-
-
-
-
-
-	//////////////////////////////////////////////////
-	
-	////////////////////
-	
-	
-	
-	
-	
-	
-	
-	/**/
-	
-	
-	
-	
-	
-	
-	///////////////////////
-	
-	//////////////////////////////////////////////////////////////////
-
-
-	
-
-
-
-
-
-
 
 
 
@@ -1456,12 +1464,29 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	scissorRect.bottom = kClientHeight;
 
 	//Transform変数を作る。
+	
 	Transform transform
 	{
 		{1.0f,1.0f,1.0f},
 		{0.0f,0.0f,0.0f},
 		{0.0f,0.0f,0.0f}
 	};
+
+	
+
+#pragma endregion
+
+
+
+
+
+
+
+
+	//
+	//     oO
+	//    [==]<]
+	//
 	Transform cameraTransform
 	{
 		{1.0f,1.0f,1.0f},
@@ -1664,35 +1689,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		ImGui::DragFloat("rotate.Y", &transform.rotate.y, 0.1f);
 		ImGui::End();
 
+		ImGui::Begin("BlendMode");
+		ImGui::ColorEdit4("material", &materialData->x, ImGuiColorEditFlags_AlphaPreview);
+		ImGui::End();
 		
-
-
-		//////////////
-
-		/////
-
-
-		
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-		/////
-
-
-		////////////////////
 
 
 
@@ -1777,18 +1777,23 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 		//////////////////
 
+		//commandList->IASetVertexBuffers(0, 1, &vertexBufferViewSprite);
+		//commandList->SetComputeRootConstantBufferView(1, transformationMatrixResourceSprite->GetGPUVirtualAddress());
+		//commandList->DrawInstanced(6, 1, 0, 0);
+
 		/////////
 
 
 
 
 
-		//commandList->IASetVertexBuffers(0, 1, &vertexBufferViewSprite);
-		//commandList->SetComputeRootConstantBufferView(1, transformationMatrixResourceSprite->GetGPUVirtualAddress());
-		//commandList->DrawInstanced(6, 1, 0, 0);
+
 
 		//Spriteの描画
-		
+		//[][][][][][][]
+		//[][][][][][][]
+		//[][][][][][][]
+		//[][][][][][][]
 		/*
 		commandList->IASetVertexBuffers(0, 1, &vertexBufferViewSprite);
 		//TransformationMatrixBufferの場所を指定
@@ -1803,12 +1808,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 
 
-		//commandlist->DrawInstanced(vertexData,1,0,0);
-
-
 
 
 		//////////
+
+		//commandlist->DrawInstanced(vertexData,1,0,0);
+		
 
 		///////////////////////
 
