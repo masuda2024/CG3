@@ -1,0 +1,43 @@
+#include "Particle.hlsli"
+
+
+
+struct Material
+{
+    float32_t4 color;
+};
+ 
+
+ConstantBuffer<Material> gMaterial : register(b0);
+Texture2D<float32_t4> gTexture : register(t0);
+SamplerState gSampler : register(s0);
+
+
+struct PixelShaderOutput
+{
+    float32_t4 color : SV_TARGET0;
+};
+
+
+PixelShaderOutput main(VertexShaderOutput input)
+{
+    PixelShaderOutput output;
+    float32_t4 textureCollor = gTexture.Sample(gSampler, input.texcoord);
+    
+    
+    
+    
+    
+    
+    
+    if(textureCollor.a == 0.0)
+    {
+        discard;
+    }
+    
+    
+    
+    output.color = gMaterial.color * textureCollor;
+    return output;
+}
+
