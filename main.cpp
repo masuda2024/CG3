@@ -89,13 +89,17 @@ struct TransformationMatrix
 
 
 /**/
-
 struct Particle
 {
 	Transform transform;
 	Vector3 velocity;
 	float currentTime;
 };
+
+
+
+
+
 
 
 //Vector3の足し算
@@ -1784,7 +1788,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	//DescriptorSizeを取得しておく
 	const uint32_t descriptorSizeSRV = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
-
+	
 
 	D3D12_SHADER_RESOURCE_VIEW_DESC instancingSrvDesc{};
 	instancingSrvDesc.Format = DXGI_FORMAT_UNKNOWN;
@@ -1810,8 +1814,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	}
    */
 
-
-
+	bool useUpdate = false;
+	
 
 	/**/
 	//パーティクル
@@ -1822,13 +1826,14 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		particles[index].transform.rotate = { 0.0f,0.0f,0.0f };
 		particles[index].transform.translate += particles[index].velocity * kDeltaTime;
 		particles[index].velocity = { 0.0f,1.0f,0.0f };
-		/* */
+		
+		/*
 		if (useUpdate)
 		{
 			particles[index].transform.translate += particles[index].velocity * kDeltaTime;
 			particles[index].currentTime += kDeltaTime;
 		}
-       
+       */
 	}
     
 
@@ -1875,9 +1880,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 
 
-
-
-
+			
 
 
 
@@ -1911,10 +1914,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 				instancingData[index].world = worldMatrix;
 			}
 			*/
-
+/**/
 			//パーティクル
 			for (uint32_t index = 0; index < kNumInstance; index++)
 			{
+				particles[index].velocity = { 0.0f,1.0f,0.0f };
 				particles[index].transform.translate += particles[index].velocity * kDeltaTime;
 				Matrix4x4 worldMatrix =
 					MakeAffineMatrix(particles[index].transform.scale, particles[index].transform.rotate, particles[index].transform.translate);
