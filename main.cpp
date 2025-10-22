@@ -1824,16 +1824,14 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	{
 		particles[index].transform.scale = { 1.0f,1.0f,1.0f };
 		particles[index].transform.rotate = { 0.0f,0.0f,0.0f };
-		particles[index].transform.translate += particles[index].velocity * kDeltaTime;
+		particles[index].transform.translate = { index * 0.1f,index * 0.1f,index * 0.1f };
 		particles[index].velocity = { 0.0f,1.0f,0.0f };
 		
-		/*
 		if (useUpdate)
 		{
 			particles[index].transform.translate += particles[index].velocity * kDeltaTime;
 			particles[index].currentTime += kDeltaTime;
 		}
-       */
 	}
     
 
