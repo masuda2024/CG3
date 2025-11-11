@@ -32,7 +32,7 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg
 
 #include"externals/DirectXTex-mar2023/DirectXTex/d3dx12.h"
 
-
+#include<random>
 #pragma region Vector
 
 struct Vector2
@@ -427,10 +427,11 @@ std::string ConverString(const std::wstring& str)
 
 }
 
+//乱数生成器の初期化
+std::random_device seedGenerator;
+std::mt19937 randomEngine(seedGenerator());
 
-
-
-
+std::uniform_real_distribution<float> distribution(-1.0f, 1.0f);
 
 
 //Resource作成
@@ -1431,11 +1432,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 
 	//三角形2個
-	//     []
-	//    [][]
-	//   [][][]
-	//  [][][][]
-	// [][][][][]
+	// []    [][][][][]
+	// [][]    [][][][]
+	// [][][]    [][][]
+	// [][][][]    [][]
+	// [][][][][]    []
 	//
 	
 	/*
@@ -1803,7 +1804,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	//device->CreateShaderResourceView(instancingResource.Get(), &instancingSrvDesc, instancingSrvHandleCPU); 
 	device->CreateShaderResourceView(instancingResource, &instancingSrvDesc, instancingSrvHandleCPU);
 
-	/* 
+	/* */
 	//トランスフォーム
 	Transform transforms[kNumInstance];
 	for (uint32_t index = 0; index < kNumInstance; index++)
@@ -1812,7 +1813,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		transforms[index].rotate = { 0.0f,0.0f,0.0f };
 		transforms[index].translate = { index * 0.1f,index * 0.1f,index * 0.1f };
 	}
-   */
+   
 
 	bool useUpdate = false;
 	
@@ -1824,14 +1825,23 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	{
 		particles[index].transform.scale = { 1.0f,1.0f,1.0f };
 		particles[index].transform.rotate = { 0.0f,0.0f,0.0f };
-		particles[index].transform.translate = { index * 0.1f,index * 0.1f,index * 0.1f };
-		particles[index].velocity = { 0.0f,1.0f,0.0f };
+		//particles[index].transform.translate = { index * 0.1f,index * 0.1f,index * 0.1f };
+		//particles[index].velocity = { 0.0f,1.0f,0.0f };
 		
+
+		particles[index].transform.translate = { distribution(randomEngine),distribution(randomEngine) ,distribution(randomEngine) };
+		particles[index].velocity = { distribution(randomEngine),distribution(randomEngine) ,distribution(randomEngine) };
+
 		if (useUpdate)
 		{
 			particles[index].transform.translate += particles[index].velocity * kDeltaTime;
 			particles[index].currentTime += kDeltaTime;
 		}
+
+
+
+
+
 	}
     
 
@@ -1859,6 +1869,15 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			ImGui::ColorEdit4("material", &materialData->x, ImGuiColorEditFlags_AlphaPreview);
 			ImGui::DragFloat("rotate.Y", &transform.rotate.y, 0.1f);
 			ImGui::Checkbox("Update", &useUpdate);
+			
+			
+			ImGui::DragFloat("translate.X", &transform.translate.x, 0.1f);
+			ImGui::DragFloat("translate.Y", &transform.translate.y, 0.1f);
+			ImGui::DragFloat("translate.Z", &transform.translate.z, 0.1f);
+
+			
+			
+			
 			ImGui::End();
 
 			ImGui::Begin("Camera");
@@ -1873,7 +1892,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 			ImGui::Begin("BlendMode");
 			ImGui::ColorEdit4("material", &materialData->x, ImGuiColorEditFlags_AlphaPreview);
-			ImGui::Checkbox("Update", &useUpdate);
+			//ImGui::Checkbox("Update", &useUpdate);
 			ImGui::End();
 
 
