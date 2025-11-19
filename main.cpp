@@ -93,6 +93,8 @@ struct Particle
 {
 	Transform transform;
 	Vector3 velocity;
+	Vector4 color;
+	float lifeTime;
 	float currentTime;
 };
 
@@ -432,6 +434,12 @@ std::random_device seedGenerator;
 std::mt19937 randomEngine(seedGenerator());
 
 std::uniform_real_distribution<float> distribution(-1.0f, 1.0f);
+
+std::uniform_real_distribution<float> distTime(1.0f, 3.0f);
+
+
+
+
 
 
 //Resource作成
@@ -1250,7 +1258,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	wvpResource->Map(0, nullptr, reinterpret_cast<void**>(&wvpData));
 	//単位行列を書き込んでおく
 	*wvpData = MakeIdentity4x4();
-
+	
 	//シリアライズしてバイナリする
 	ID3D10Blob* signatureBlob = nullptr;
 	ID3D10Blob* errorBlob = nullptr;
@@ -1527,15 +1535,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 
 
-
-
-
-
-
-
-
-
-
 	//頂点リソースを作る
 	ID3D12Resource* vertexResource = CreateBufferResource(device, sizeof(VertexData) * modelData.vertices.size());
 	//頂点バッファビューを作成する
@@ -1804,7 +1803,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	//device->CreateShaderResourceView(instancingResource.Get(), &instancingSrvDesc, instancingSrvHandleCPU); 
 	device->CreateShaderResourceView(instancingResource, &instancingSrvDesc, instancingSrvHandleCPU);
 
-	/* */
+	
 	//トランスフォーム
 	Transform transforms[kNumInstance];
 	for (uint32_t index = 0; index < kNumInstance; index++)
@@ -1815,35 +1814,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	}
    
 
-	bool useUpdate = false;
 	
 
-	/**/
-	//パーティクル
-	Particle particles[kNumInstance];
-	for (uint32_t index = 0; index < kNumInstance; index++)
-	{
-		particles[index].transform.scale = { 1.0f,1.0f,1.0f };
-		particles[index].transform.rotate = { 0.0f,0.0f,0.0f };
-		//particles[index].transform.translate = { index * 0.1f,index * 0.1f,index * 0.1f };
-		//particles[index].velocity = { 0.0f,1.0f,0.0f };
-		
-
-		particles[index].transform.translate = { distribution(randomEngine),distribution(randomEngine) ,distribution(randomEngine) };
-		particles[index].velocity = { distribution(randomEngine),distribution(randomEngine) ,distribution(randomEngine) };
-
-		if (useUpdate)
-		{
-			particles[index].transform.translate += particles[index].velocity * kDeltaTime;
-			particles[index].currentTime += kDeltaTime;
-		}
 
 
 
 
 
-	}
-    
 
 
 #pragma endregion
@@ -1868,16 +1845,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			ImGui::Begin("Settings");
 			ImGui::ColorEdit4("material", &materialData->x, ImGuiColorEditFlags_AlphaPreview);
 			ImGui::DragFloat("rotate.Y", &transform.rotate.y, 0.1f);
-			ImGui::Checkbox("Update", &useUpdate);
-			
-			
-			ImGui::DragFloat("translate.X", &transform.translate.x, 0.1f);
-			ImGui::DragFloat("translate.Y", &transform.translate.y, 0.1f);
-			ImGui::DragFloat("translate.Z", &transform.translate.z, 0.1f);
-
-			
-			
-			
+			ImGui::DragFloat3("transform", &transform.translate.x, 0.1f);
+			ImGui::DragFloat2("Sprite transform", &transformSprite.translate.x, 1.0f);
+			ImGui::Checkbox("Update", &useUpdate);		
 			ImGui::End();
 
 			ImGui::Begin("Camera");
@@ -1920,7 +1890,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 			Matrix4x4 viewProjectionMatrix = Multiply(viewMatrix, projectionMatrix);
 
-			/*
+			
 			//トランスフォーム
 			for (uint32_t index = 0; index < kNumInstance; index++)
 			{
@@ -1930,23 +1900,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 				instancingData[index].wvp = worldviewProjectionMatrix;
 				instancingData[index].world = worldMatrix;
 			}
-			*/
-/**/
-			//パーティクル
-			for (uint32_t index = 0; index < kNumInstance; index++)
-			{
-				particles[index].velocity = { 0.0f,1.0f,0.0f };
-				particles[index].transform.translate += particles[index].velocity * kDeltaTime;
-				Matrix4x4 worldMatrix =
-					MakeAffineMatrix(particles[index].transform.scale, particles[index].transform.rotate, particles[index].transform.translate);
-				Matrix4x4 worldviewProjectionMatrix = Multiply(worldMatrix, viewProjectionMatrix);
-				instancingData[index].wvp = worldviewProjectionMatrix;
-				instancingData[index].world = worldMatrix;
-			}
-
-
-
-
+			
 
 
 
