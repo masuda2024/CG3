@@ -1,12 +1,15 @@
 #include<Windows.h>
 #include<string>
 #include<format>
+
 #include<d3d12.h>
 #include<dxgi1_6.h>
 #include<cassert>
+
+
 #include<dxgidebug.h>
 
-
+#include<numbers>
 
 
 #pragma comment(lib,"d3d12.lib")
@@ -1409,21 +1412,16 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	depthStencilDesc.DepthEnable = true;
 	//書き込み
 	depthStencilDesc.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
-	
-	
-	
-	
-	
 	//比較関数はLessEqual(近ければ描画)
 	depthStencilDesc.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
-	
-	
-	
 	//DepthStencilの設定
 	graphicsPipelineStateDesc.DepthStencilState = depthStencilDesc;
 	graphicsPipelineStateDesc.DSVFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
 	
 	
+
+	//////////////////////////////////////////
+
 
 
 
@@ -1436,6 +1434,92 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	assert(SUCCEEDED(hr));
 	
 	
+	//////////////////////////////////////////
+
+#pragma region 球
+	//球表示用
+	const uint32_t kSubdivision = 12;
+	const uint32_t kNumSphereVertices = kSubdivision * kSubdivision * 6;
+	float pi = std::numbers::pi_v<float>;
+
+
+	ID3D12Resource* vertexResource = CreateBufferResource(device, sizeof(VertexData) * kNumSphereVertices);
+
+
+	//頂点バッファビューを作成する
+	D3D12_VERTEX_BUFFER_VIEW vertexBufferView{};
+	//リソースの先頭のアドレスから使う
+	vertexBufferView.BufferLocation = vertexResource->GetGPUVirtualAddress();
+	//使用するリソースのサイズは頂点3つ分のサイズ
+	vertexBufferView.SizeInBytes = sizeof(VertexData) * kNumSphereVertices;
+	//1頂点あたりのサイズ
+	vertexBufferView.StrideInBytes = sizeof(VertexData);
+
+	//頂点リソースにデータを書き込む
+	VertexData* vertexData = nullptr;
+	//書き込むためのアドレスを取得
+	vertexResource->Map(0, nullptr, reinterpret_cast<void**>(&vertexData));
+
+
+	//経度分割1つ分の角度φ
+	const float kLonEvery = pi * 2.0f / float(kSubdivision);
+	//緯度分割1つ分の角度θ
+	const float kLatEvery = pi / float(kSubdivision);
+
+
+	//経度の方向に分割
+	for (uint32_t latIndex = 0; latIndex < kSubdivision; latIndex++)
+	{
+		float lat = -pi / 2.0f + kLatEvery * latIndex;
+		//経度の方向に分割しながら線を描く
+		for (uint32_t lonIndex = 0; lonIndex, kSubdivision; lonIndex++)
+		{
+			uint32_t start = (latIndex * kSubdivision + lonIndex) * 6;
+			float lon = lonIndex * kLonEvery;
+			//頂点にデータを入力する
+			vertexData[start].position.x = cos(lat) * cos(lon);
+			vertexData[start].position.y = sin(lat);
+			vertexData[start].position.z = cos(lat) * sin(lon);
+			vertexData[start].position.w = 1.0f;
+			vertexData[start].texcoord = { float(lonIndex) / float(kSubdivision),1.0f - float(latIndex) / float(kSubdivision) };
+		
+			vertexData[start + 1].position.x = std::cos(lat + kLatEvery) * std::cos(lon);
+			vertexData[start + 1].position.y = std::sin(lat + kLatEvery);
+			vertexData[start + 1].position.z = std::cos(lat + kLatEvery) * std::sin(lon);
+			vertexData[start + 1].position.w = 1.0f;
+			vertexData[start + 1].texcoord = { float(lonIndex) / float(kSubdivision),1.0f - float(latIndex + 1) / float(kSubdivision) };
+
+			vertexData[start + 2].position.x = std::cos(lat) * std::cos(lon + kLonEvery);
+			vertexData[start + 2].position.y = std::sin(lat);
+			vertexData[start + 2].position.z = std::cos(lat) * std::sin(lon + kLonEvery);
+			vertexData[start + 2].position.w = 1.0f;
+			vertexData[start + 2].texcoord = { float(lonIndex + 1) / float(kSubdivision),1.0f - float(latIndex) / float(kSubdivision) };
+
+			vertexData[start + 3] = vertexData[start + 2];
+			vertexData[start + 4] = vertexData[start + 1];
+
+			vertexData[start + 5].position.x = std::cos(lat + kLatEvery) * std::cos(lon + kLonEvery);
+			vertexData[start + 5].position.y = std::sin(lat + kLatEvery);
+			vertexData[start + 5].position.z = std::cos(lat + kLatEvery) * std::sin(lon + kLonEvery);
+			vertexData[start + 5].position.w = 1.0f;
+			vertexData[start + 5].texcoord = { float(lonIndex + 1) / float(kSubdivision),1.0f - float(latIndex + 1) / float(kSubdivision) };
+		}
+	}
+
+
+
+#pragma endregion
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1532,9 +1616,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	ModelData modelData = LoadObjFile("resources", "plane.obj");
 	//ModelData modelData = LoadObjFile("resources", "axis.obj");
 	//ModelData modelData = LoadObjFile("resources", "fence.obj");
+	//ModelData modelData = LoadObjFile("resources", "sphere.obj");
 
 
 
+
+	/*
 	//頂点リソースを作る
 	ID3D12Resource* vertexResource = CreateBufferResource(device, sizeof(VertexData) * modelData.vertices.size());
 	//頂点バッファビューを作成する
@@ -1548,7 +1635,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	vertexResource->Map(0, nullptr, reinterpret_cast<void**>(&vertexData));//書き込むためのアドレスを取得
 	std::memcpy(vertexData, modelData.vertices.data(), sizeof(VertexData)* modelData.vertices.size());//頂点データをリソースにコピー
 
-
+	*/
 	
 
 
@@ -2020,7 +2107,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		//[][][][][][][]
 		//[][][][][][][]
 		//[][][][][][][]
-		/*
+		/**/
 		commandList->IASetVertexBuffers(0, 1, &vertexBufferViewSprite);
 		//TransformationMatrixBufferの場所を指定
 		commandList->SetGraphicsRootConstantBufferView(1, transformationMatrixResourceSprite->GetGPUVirtualAddress());
@@ -2030,9 +2117,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		//commandList->DrawInstanced(6, 1, 0, 0);
 
 		commandList->DrawIndexedInstanced(6, 1, 0, 0, 0);
-		*/
-
-
+		
+		//球を描画
+		commandList->DrawInstanced(kNumSphereVertices, 1, 0, 0);
 
 
 
