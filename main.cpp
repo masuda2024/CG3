@@ -1472,14 +1472,14 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	{
 		float lat = -pi / 2.0f + kLatEvery * latIndex;
 		//経度の方向に分割しながら線を描く
-		for (uint32_t lonIndex = 0; lonIndex, kSubdivision; lonIndex++)
+		for (uint32_t lonIndex = 0; lonIndex< kSubdivision; lonIndex++)
 		{
 			uint32_t start = (latIndex * kSubdivision + lonIndex) * 6;
 			float lon = lonIndex * kLonEvery;
 			//頂点にデータを入力する
-			vertexData[start].position.x = cos(lat) * cos(lon);
-			vertexData[start].position.y = sin(lat);
-			vertexData[start].position.z = cos(lat) * sin(lon);
+			vertexData[start].position.x = std::cos(lat) * std::cos(lon);
+			vertexData[start].position.y = std::sin(lat);
+			vertexData[start].position.z = std::cos(lat) * std::sin(lon);
 			vertexData[start].position.w = 1.0f;
 			vertexData[start].texcoord = { float(lonIndex) / float(kSubdivision),1.0f - float(latIndex) / float(kSubdivision) };
 		
@@ -2079,6 +2079,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 			//描画!(DrawCall/ドローコール)。3頂点で1つのインタランス。インタランスについては今後
 			//commandList->DrawInstanced(6, 1, 0, 0);
+			//球を描画
+			commandList->DrawInstanced(kNumSphereVertices, 1, 0, 0);
 
 			//モデル描画
 			commandList->DrawInstanced(UINT(modelData.vertices.size()), kNumInstance, 0, 0);
@@ -2108,19 +2110,17 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		//[][][][][][][]
 		//[][][][][][][]
 		/**/
-		commandList->IASetVertexBuffers(0, 1, &vertexBufferViewSprite);
+		//commandList->IASetVertexBuffers(0, 1, &vertexBufferViewSprite);
 		//TransformationMatrixBufferの場所を指定
-		commandList->SetGraphicsRootConstantBufferView(1, transformationMatrixResourceSprite->GetGPUVirtualAddress());
+		//commandList->SetGraphicsRootConstantBufferView(1, transformationMatrixResourceSprite->GetGPUVirtualAddress());
 		//インデックスを指定
-		commandList->IASetIndexBuffer(&indexBufferViewSprite);
+		//commandList->IASetIndexBuffer(&indexBufferViewSprite);
 		//描画
 		//commandList->DrawInstanced(6, 1, 0, 0);
 
-		commandList->DrawIndexedInstanced(6, 1, 0, 0, 0);
+		//commandList->DrawIndexedInstanced(6, 1, 0, 0, 0);
 		
-		//球を描画
-		commandList->DrawInstanced(kNumSphereVertices, 1, 0, 0);
-
+		
 
 
 		//////////
@@ -2262,88 +2262,3 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 	CoUninitialize();
 }
-
-
-#pragma region 球を描画しよう
-
-/*
-uint32_t startIndex = (latIndex * kSubdivision + lonIndex) * 6;
-
-u = float(lonIndex) / float(kSubdivision);
-
-v = 1.0f - float(latIndex) / float(kSubdivision);
-
-
-//経度分数1つ分の角度φ
-const float kLonEvery = pi * 2.0f / float(kSubdivision);
-
-//緯度分数1つ分の角度θ
-const float kLatEvery = pi / float(kSubdivision);
-
-//緯度の方向に分割
-for(latIndex = 0; latIndex < kSubdivision; latIndex++)
-{
-	float lat = -pi / 2.0f + kLatEvery * latIndex;//θ
-	//経度の方向に分割しながら線を描く
-	for(lonIndex = 0; lonIndex < kSubdivision; lonIndex++)
-	{
-		uint32_t start = (latIndex * kSubdivision  ; lonIndex) * 6;
-		float lon = lonIndex * kLonEvery//φ
-		//頂点にデータを入力する。基準点a
-		vertexData[start].position.x = cos(lat) * cos(lon);
-		vertexData[start].position.y = sin(lat);
-		vertexData[start].position.z = cos(lat) * son(lon);
-		vertexData[start].position.w = 1.0f;
-		vertexData[start].texcoord = { 0.0f ,1.0f };
-
-		vertexData[start].position.x = cos(lat) * cos(lon);
-		vertexData[start].position.y = sin(lat);
-		vertexData[start].position.z = cos(lat) * son(lon);
-		vertexData[start].position.w = 1.0f;
-		vertexData[start].texcoord = { 0.0f ,1.0f };
-
-		vertexData[start].position.x = cos(lat) * cos(lon);
-		vertexData[start].position.y = sin(lat);
-		vertexData[start].position.z = cos(lat) * son(lon);
-		vertexData[start].position.w = 1.0f;
-		vertexData[start].texcoord = { 0.0f ,1.0f };
-
-		vertexData[start].position.x = cos(lat) * cos(lon);
-		vertexData[start].position.y = sin(lat);
-		vertexData[start].position.z = cos(lat) * son(lon);
-		vertexData[start].position.w = 1.0f;
-		vertexData[start].texcoord = { 0.0f ,1.0f };
-
-		vertexData[start].position.x = cos(lat) * cos(lon);
-		vertexData[start].position.y = sin(lat);
-		vertexData[start].position.z = cos(lat) * son(lon);
-		vertexData[start].position.w = 1.0f;
-		vertexData[start].texcoord = { 0.0f ,1.0f };
-
-		vertexData[start].position.x = cos(lat) * cos(lon);
-		vertexData[start].position.y = sin(lat);
-		vertexData[start].position.z = cos(lat) * son(lon);
-		vertexData[start].position.w = 1.0f;
-		vertexData[start].texcoord = { 0.0f ,1.0f };
-
-	}
-}
-
-
-
-
-
-
-
-
-*/
-
-#pragma endregion
-
-
-
-
-
-
-
-
