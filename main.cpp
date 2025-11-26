@@ -2079,8 +2079,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 			//描画!(DrawCall/ドローコール)。3頂点で1つのインタランス。インタランスについては今後
 			//commandList->DrawInstanced(6, 1, 0, 0);
+			
+			
 			//球を描画
 			commandList->DrawInstanced(kNumSphereVertices, 1, 0, 0);
+
+
 
 			//モデル描画
 			commandList->DrawInstanced(UINT(modelData.vertices.size()), kNumInstance, 0, 0);
@@ -2109,7 +2113,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		//[][][][][][][]
 		//[][][][][][][]
 		//[][][][][][][]
-		/**/
+		/*
 		//commandList->IASetVertexBuffers(0, 1, &vertexBufferViewSprite);
 		//TransformationMatrixBufferの場所を指定
 		//commandList->SetGraphicsRootConstantBufferView(1, transformationMatrixResourceSprite->GetGPUVirtualAddress());
@@ -2119,7 +2123,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		//commandList->DrawInstanced(6, 1, 0, 0);
 
 		//commandList->DrawIndexedInstanced(6, 1, 0, 0, 0);
-		
+		*/
 		
 
 
