@@ -1613,71 +1613,71 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 #pragma region モデル
 	//モデル読み込み
-	ModelData modelData = LoadObjFile("resources", "plane.obj");
-	//ModelData modelData = LoadObjFile("resources", "axis.obj");
-	//ModelData modelData = LoadObjFile("resources", "fence.obj");
-	//ModelData modelData = LoadObjFile("resources", "sphere.obj");
+ModelData modelData = LoadObjFile("resources", "plane.obj");
+//ModelData modelData = LoadObjFile("resources", "axis.obj");
+//ModelData modelData = LoadObjFile("resources", "fence.obj");
+//ModelData modelData = LoadObjFile("resources", "sphere.obj");
 
 
 
 
-	/*
-	//頂点リソースを作る
-	ID3D12Resource* vertexResource = CreateBufferResource(device, sizeof(VertexData) * modelData.vertices.size());
-	//頂点バッファビューを作成する
-	D3D12_VERTEX_BUFFER_VIEW vertexBufferView{};
-	vertexBufferView.BufferLocation = vertexResource->GetGPUVirtualAddress();//リソースの先頭のアドレスから使う
-	vertexBufferView.SizeInBytes = UINT(sizeof(VertexData) * modelData.vertices.size());//使用するリソースのサイズは頂点のサイズ
-	vertexBufferView.StrideInBytes = sizeof(VertexData);//1頂点あたりのサイズ
+/*
+//頂点リソースを作る
+ID3D12Resource* vertexResource = CreateBufferResource(device, sizeof(VertexData) * modelData.vertices.size());
+//頂点バッファビューを作成する
+D3D12_VERTEX_BUFFER_VIEW vertexBufferView{};
+vertexBufferView.BufferLocation = vertexResource->GetGPUVirtualAddress();//リソースの先頭のアドレスから使う
+vertexBufferView.SizeInBytes = UINT(sizeof(VertexData) * modelData.vertices.size());//使用するリソースのサイズは頂点のサイズ
+vertexBufferView.StrideInBytes = sizeof(VertexData);//1頂点あたりのサイズ
 
-	//頂点リソースにデータを書き込む
-	VertexData* vertexData = nullptr;
-	vertexResource->Map(0, nullptr, reinterpret_cast<void**>(&vertexData));//書き込むためのアドレスを取得
-	std::memcpy(vertexData, modelData.vertices.data(), sizeof(VertexData)* modelData.vertices.size());//頂点データをリソースにコピー
+//頂点リソースにデータを書き込む
+VertexData* vertexData = nullptr;
+vertexResource->Map(0, nullptr, reinterpret_cast<void**>(&vertexData));//書き込むためのアドレスを取得
+std::memcpy(vertexData, modelData.vertices.data(), sizeof(VertexData)* modelData.vertices.size());//頂点データをリソースにコピー
 
-	*/
-	
-
-
-	//マテリアル用のリソースを作る。今回はcolor1つ分のサイズを用意する
-	ID3D12Resource* materialResource = CreateBufferResource(device, sizeof(Vector4));
-	//マテリアルにデータを書き込む
-	Vector4* materialData = nullptr;
-	//書き込むためのアドレスを取得
-	materialResource->Map(0, nullptr, reinterpret_cast<void**>(&materialData));
-	//今回は白を書き込んでみる
-	*materialData = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+*/
 
 
 
-	//ビューボート
-	D3D12_VIEWPORT viewport{};
-	//クライアント領域のサイズと一緒にして画面全体に表示
-	viewport.Width = kClientWidth;
-	viewport.Height = kClientHeight;
-	viewport.TopLeftX = 0;
-	viewport.TopLeftY = 0;
-	viewport.MinDepth = 0.0f;
-	viewport.MaxDepth = 1.0f;
+//マテリアル用のリソースを作る。今回はcolor1つ分のサイズを用意する
+ID3D12Resource* materialResource = CreateBufferResource(device, sizeof(Vector4));
+//マテリアルにデータを書き込む
+Vector4* materialData = nullptr;
+//書き込むためのアドレスを取得
+materialResource->Map(0, nullptr, reinterpret_cast<void**>(&materialData));
+//今回は白を書き込んでみる
+*materialData = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
 
-	//ｼｻﾞｰ短形
-	D3D12_RECT scissorRect{};
-	//基本的にビューボートと同じ短形が構成されるようにする
-	scissorRect.left = 0;
-	scissorRect.right = kClientWidth;
-	scissorRect.top = 0;
-	scissorRect.bottom = kClientHeight;
 
-	//Transform変数を作る。
-	
-	Transform transform
-	{
-		{1.0f,1.0f,1.0f},
-		{0.0f,0.0f,0.0f},
-		{0.0f,0.0f,0.0f}
-	};
 
-	
+//ビューボート
+D3D12_VIEWPORT viewport{};
+//クライアント領域のサイズと一緒にして画面全体に表示
+viewport.Width = kClientWidth;
+viewport.Height = kClientHeight;
+viewport.TopLeftX = 0;
+viewport.TopLeftY = 0;
+viewport.MinDepth = 0.0f;
+viewport.MaxDepth = 1.0f;
+
+//ｼｻﾞｰ短形
+D3D12_RECT scissorRect{};
+//基本的にビューボートと同じ短形が構成されるようにする
+scissorRect.left = 0;
+scissorRect.right = kClientWidth;
+scissorRect.top = 0;
+scissorRect.bottom = kClientHeight;
+
+//Transform変数を作る。
+
+Transform transform
+{
+	{1.0f,1.0f,1.0f},
+	{0.0f,0.0f,0.0f},
+	{0.0f,0.0f,0.0f}
+};
+
+
 
 #pragma endregion
 
